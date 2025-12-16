@@ -1,6 +1,6 @@
-import { Router, Request, Response } from 'express';
-import { OpenAPIParser } from '../utils/openApiParser';
-import { GovernanceEngine } from '../utils/governanceEngine';
+import { Router } from 'express';
+import { OpenAPIParser } from '../utils/openApiParser.js';
+import { GovernanceEngine } from '../utils/governanceEngine.js';
 import { z } from 'zod';
 
 const router = Router();

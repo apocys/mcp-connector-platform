@@ -6,10 +6,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Import routes
-import connectorsRouter from './routes/connectors';
-import approvalsRouter from './routes/approvals';
-import tokensRouter from './routes/tokens';
-import logsRouter from './routes/logs';
+import connectorsRouter from './routes/connectors.js';
+import approvalsRouter from './routes/approvals.js';
+import tokensRouter from './routes/tokens.js';
+import logsRouter from './routes/logs.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;

@@ -1,4 +1,4 @@
-import { MCPTool } from './openApiParser';
+import { MCPTool } from './openApiParser.js';
 
 export interface GovernanceConfig {
   allowedVerbs: string[];
