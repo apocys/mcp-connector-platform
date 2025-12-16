@@ -11,7 +11,7 @@ const ApprovalDecisionSchema = z.object({
  * GET /api/approvals
  * List pending approvals
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req, res) => {
   try {
     // TODO: Fetch pending approvals from database
     res.json({
@@ -40,7 +40,7 @@ router.get('/', async (req: Request, res: Response) => {
  * POST /api/approvals/:id/approve
  * Approve a pending action (Point 7)
  */
-router.post('/:id/approve', async (req: Request, res: Response) => {
+router.post('/:id/approve', async (req, res) => {
   try {
     const { id } = req.params;
     const input = ApprovalDecisionSchema.parse(req.body);
@@ -67,7 +67,7 @@ router.post('/:id/approve', async (req: Request, res: Response) => {
  * POST /api/approvals/:id/reject
  * Reject a pending action (Point 7)
  */
-router.post('/:id/reject', async (req: Request, res: Response) => {
+router.post('/:id/reject', async (req, res) => {
   try {
     const { id } = req.params;
     const input = ApprovalDecisionSchema.parse(req.body);

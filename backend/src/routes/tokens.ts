@@ -14,7 +14,7 @@ const CreateTokenSchema = z.object({
  * GET /api/tokens
  * List MCP tokens
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req, res) => {
   try {
     // TODO: Fetch tokens from database
     res.json({
@@ -40,7 +40,7 @@ router.get('/', async (req: Request, res: Response) => {
  * POST /api/tokens
  * Issue new MCP token (Point 7)
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req, res) => {
   try {
     const input = CreateTokenSchema.parse(req.body);
 
@@ -74,7 +74,7 @@ router.post('/', async (req: Request, res: Response) => {
  * DELETE /api/tokens/:id
  * Revoke token (Point 7)
  */
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 

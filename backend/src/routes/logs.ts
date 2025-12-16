@@ -16,7 +16,7 @@ const LogsQuerySchema = z.object({
  * GET /api/logs
  * List invocation logs (Point 7)
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req, res) => {
   try {
     const query = LogsQuerySchema.parse(req.query);
 
@@ -74,7 +74,7 @@ router.get('/', async (req: Request, res: Response) => {
  * GET /api/logs/:id
  * Get detailed log entry
  */
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 

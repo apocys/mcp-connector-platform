@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { OpenAPIParser } from '../utils/openApiParser.js';
 import { GovernanceEngine } from '../utils/governanceEngine.js';
 import { z } from 'zod';
@@ -35,7 +35,7 @@ const UpdateGovernanceSchema = z.object({
  * POST /api/connectors
  * Create connector from OpenAPI spec (Point 7)
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req, res) => {
   try {
     const input = CreateConnectorSchema.parse(req.body);
 
@@ -93,7 +93,7 @@ router.post('/', async (req: Request, res: Response) => {
  * GET /api/connectors/:id/preview
  * Preview generated tools (Point 7)
  */
-router.get('/:id/preview', async (req: Request, res: Response) => {
+router.get('/:id/preview', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -125,7 +125,7 @@ router.get('/:id/preview', async (req: Request, res: Response) => {
  * PATCH /api/connectors/:id/endpoints
  * Update endpoint selection (Point 7)
  */
-router.patch('/:id/endpoints', async (req: Request, res: Response) => {
+router.patch('/:id/endpoints', async (req, res) => {
   try {
     const { id } = req.params;
     const input = UpdateEndpointsSchema.parse(req.body);
@@ -148,7 +148,7 @@ router.patch('/:id/endpoints', async (req: Request, res: Response) => {
  * PATCH /api/connectors/:id/governance
  * Update governance rules (Point 7)
  */
-router.patch('/:id/governance', async (req: Request, res: Response) => {
+router.patch('/:id/governance', async (req, res) => {
   try {
     const { id } = req.params;
     const input = UpdateGovernanceSchema.parse(req.body);
@@ -180,7 +180,7 @@ router.patch('/:id/governance', async (req: Request, res: Response) => {
  * POST /api/connectors/:id/deploy
  * Deploy connector (Point 7)
  */
-router.post('/:id/deploy', async (req: Request, res: Response) => {
+router.post('/:id/deploy', async (req, res) => {
   try {
     const { id } = req.params;
 
