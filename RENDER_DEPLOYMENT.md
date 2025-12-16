@@ -42,13 +42,13 @@ Click "Deploy" to create all services.
 
 ### Step 4: Set Environment Variables
 
-After deployment starts, you need to set the `OPENAI_API_KEY`:
+After deployment starts, you need to set the `GOOGLE_API_KEY`:
 
 1. Go to the **mcp-backend** service
 2. Click "Environment"
 3. Add environment variable:
-   - **Key:** `OPENAI_API_KEY`
-   - **Value:** Your OpenAI API key (from https://platform.openai.com/api-keys)
+   - **Key:** `GOOGLE_API_KEY`
+   - **Value:** Your Google API key (from https://aistudio.google.com/app/apikey)
 4. Click "Save"
 
 The service will automatically redeploy with the new variable.
@@ -109,7 +109,7 @@ After deployment, you'll have:
 | Variable | Value | Required |
 |----------|-------|----------|
 | `DATABASE_URL` | Auto-set from postgres | Yes |
-| `OPENAI_API_KEY` | Your OpenAI API key | Yes (for AI Reviewer) |
+| `GOOGLE_API_KEY` | Your Google API key (Gemini) | Yes (for AI Reviewer) |
 | `NODE_ENV` | `production` | Yes |
 | `PORT` | `3000` | Yes |
 
@@ -197,15 +197,15 @@ npm start
 
 ### AI Reviewer Not Working
 
-**Check OpenAI API key:**
+**Check Google API key:**
 1. Backend service → Environment
-2. Verify `OPENAI_API_KEY` is set
-3. Key should be valid and have credits
+2. Verify `GOOGLE_API_KEY` is set
+3. Key should be valid and have Gemini API enabled
 
 **Solution:**
-- Get new key from https://platform.openai.com/api-keys
-- Ensure key has API usage enabled
-- Check OpenAI account has credits
+- Get new key from https://aistudio.google.com/app/apikey
+- Ensure Gemini API is enabled in Google Cloud Console
+- Check that the key has proper permissions
 
 ## Scaling
 

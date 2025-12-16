@@ -1,4 +1,4 @@
-import { OpenAI } from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { MCPTool } from './openApiParser';
 
 export interface ReviewerInput {
@@ -39,11 +39,15 @@ export interface ReviewerOutput {
 }
 
 export class AIReviewer {
-  private client: OpenAI;
-  private model = 'gpt-4.1-mini';
+  private client: GoogleGenerativeAI;
+  private model = 'gemini-2.5-flash';
 
   constructor() {
-    this.client = new OpenAI();
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      throw new Error('GOOGLE_API_KEY environment variable is required');
+    }
+    this.client = new GoogleGenerativeAI(apiKey);
   }
 
   /**
@@ -57,30 +61,37 @@ export class AIReviewer {
       const systemPrompt = this.buildSystemPrompt(input);
       const userPrompt = this.buildUserPrompt(input);
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      // Create a promise that rejects after timeout
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('AI Reviewer timeout')), timeoutMs)
+      );
 
       try {
-        const response = await this.client.chat.completions.create({
-          model: this.model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
+        const model = this.client.getGenerativeModel({ model: this.model });
+        
+        const responsePromise = model.generateContent({
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { text: `${systemPrompt}\n\n${userPrompt}` },
+              ],
+            },
           ],
-          temperature: 0.3,
-          max_tokens: 500,
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 500,
+          },
         });
 
-        clearTimeout(timeoutId);
-
-        const content = response.choices[0]?.message?.content || '{}';
+        const response = await Promise.race([responsePromise, timeoutPromise]);
+        const content = response.response.text() || '{}';
         const result = this.parseReviewerResponse(content);
 
         return result;
       } catch (error) {
-        clearTimeout(timeoutId);
-        if ((error as any).name === 'AbortError') {
-          throw new Error('AI Reviewer timeout');
+        if ((error as Error).message === 'AI Reviewer timeout') {
+          throw error;
         }
         throw error;
       }

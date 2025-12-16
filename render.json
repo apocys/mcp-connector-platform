@@ -1,8 +1,9 @@
 {
   "name": "MCP Connector Platform",
-  "description": "Transform OpenAPI documentation into hosted MCP servers with governance controls and AI safety review",
+  "description": "Transform OpenAPI documentation into hosted MCP servers with governance controls and Gemini AI safety review",
   "logo": "https://raw.githubusercontent.com/openai/gpt-4/main/examples/gpt4.png",
   "repo": "https://github.com/yourusername/mcp-connector-platform",
+  "buildCommand": "npm install",
   "services": [
     {
       "name": "mcp-postgres",
@@ -12,7 +13,8 @@
         "version": "15",
         "database": "mcp_connector",
         "user": "mcp_user"
-      }
+      },
+      "ipAllowList": []
     },
     {
       "name": "mcp-backend",
@@ -30,15 +32,20 @@
           }
         },
         {
-          "key": "OPENAI_API_KEY",
+          "key": "GOOGLE_API_KEY",
           "sync": false
         },
         {
           "key": "NODE_ENV",
           "value": "production"
+        },
+        {
+          "key": "PORT",
+          "value": "3000"
         }
       ],
-      "healthCheckPath": "/health"
+      "healthCheckPath": "/health",
+      "autoDeploy": true
     },
     {
       "name": "mcp-frontend",
@@ -55,7 +62,8 @@
             "property": "url"
           }
         }
-      ]
+      ],
+      "autoDeploy": true
     },
     {
       "name": "mcp-runtime",
@@ -80,7 +88,8 @@
           }
         }
       ],
-      "healthCheckPath": "/health"
+      "healthCheckPath": "/health",
+      "autoDeploy": true
     }
   ]
 }

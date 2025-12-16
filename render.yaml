@@ -21,7 +21,7 @@ services:
         fromDatabase:
           name: mcp-postgres
           property: connectionString
-      - key: OPENAI_API_KEY
+      - key: GOOGLE_API_KEY
         sync: false
       - key: NODE_ENV
         value: production

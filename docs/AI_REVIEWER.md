@@ -2,7 +2,7 @@
 
 ## Overview
 
-The AI Reviewer is an optional intelligent safety layer that sits between the agent client (Claude) and the downstream HTTP execution. It assesses each tool invocation request and returns one of three decisions:
+The AI Reviewer is an optional intelligent safety layer powered by Google's Gemini API. It sits between the agent client (Claude) and the downstream HTTP execution. It assesses each tool invocation request and returns one of three decisions:
 
 - **ALLOW** - Forward to execution
 - **REQUIRE_HUMAN_APPROVAL** - Hold request; admin approves in UI
@@ -280,7 +280,7 @@ The reviewer is designed to resist prompt injection and manipulation:
 
 ## System Prompt
 
-The reviewer uses this system prompt (configurable):
+The reviewer uses Google's Gemini 2.5 Flash model with this system prompt (configurable):
 
 ```
 You are a strict safety reviewer for API tool calls in a Model Context Protocol (MCP) server.
@@ -432,6 +432,29 @@ Every reviewer invocation is logged:
 - Review system prompt
 - Check input redaction
 - Analyze false positive/negative patterns
+
+## Integration with Gemini
+
+The AI Reviewer uses Google's Gemini API:
+
+**Model:** `gemini-2.5-flash` (fast, cost-effective)
+
+**Configuration:**
+```env
+GOOGLE_API_KEY=your-api-key-from-aistudio.google.com
+```
+
+**Features:**
+- Fast response time (typically 200-500ms)
+- Cost-effective for high-volume requests
+- Supports streaming and non-streaming modes
+- Excellent for safety assessment tasks
+
+**Getting Started:**
+1. Go to https://aistudio.google.com/app/apikey
+2. Create a new API key
+3. Set `GOOGLE_API_KEY` environment variable
+4. Enable Gemini API in Google Cloud Console
 
 ## License
 
