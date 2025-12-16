@@ -37,7 +37,7 @@ const connectors = new Map<string, ConnectorConfig>();
 /**
  * MCP Protocol: List available tools
  */
-app.post('/mcp/tools/list', (req: Request, res: Response) => {
+app.post('/mcp/tools/list', (req, res) => {
   try {
     const { connectorId } = req.body;
     const connector = connectors.get(connectorId);
@@ -62,7 +62,7 @@ app.post('/mcp/tools/list', (req: Request, res: Response) => {
  * MCP Protocol: Call a tool
  * This is where governance checks and AI review happen
  */
-app.post('/mcp/tools/call', async (req: Request, res: Response) => {
+app.post('/mcp/tools/call', async (req, res) => {
   try {
     const { connectorId, toolName, arguments: toolArguments } = req.body;
     const authToken = req.headers.authorization?.replace('Bearer ', '');
@@ -124,14 +124,14 @@ app.post('/mcp/tools/call', async (req: Request, res: Response) => {
 /**
  * Health check
  */
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 /**
  * Register a connector (called by control plane)
  */
-app.post('/internal/connectors/register', (req: Request, res: Response) => {
+app.post('/internal/connectors/register', (req, res) => {
   try {
     const { id, baseUrl, authType, authSecret, tools, governance } = req.body;
 
