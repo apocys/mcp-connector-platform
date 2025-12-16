@@ -1,6 +1,7 @@
 import { OpenAPI } from 'openapi-types';
 import axios from 'axios';
 import * as yaml from 'js-yaml';
+import type { OpenAPIV3 } from 'openapi-types';
 
 export interface ParsedEndpoint {
   path: string;
@@ -41,7 +42,7 @@ export class OpenAPIParser {
   /**
    * Parse OpenAPI spec from URL or file content
    */
-  static async parseSpec(input: string | Record<string, any>): Promise<OpenAPI.Document> {
+  static async parseSpec(input: string | Record<string, any>): Promise<OpenAPIV3.Document> {
     let spec: any;
 
     if (typeof input === 'string') {
@@ -61,13 +62,13 @@ export class OpenAPIParser {
       spec = input;
     }
 
-    return spec as OpenAPI.Document;
+    return spec as OpenAPIV3.Document;
   }
 
   /**
    * Extract all endpoints from OpenAPI spec
    */
-  static extractEndpoints(spec: OpenAPI.Document): ParsedEndpoint[] {
+  static extractEndpoints(spec: OpenAPIV3.Document): ParsedEndpoint[] {
     const endpoints: ParsedEndpoint[] = [];
     const paths = spec.paths || {};
 
@@ -275,8 +276,8 @@ export class OpenAPIParser {
   /**
    * Extract base URL from OpenAPI spec
    */
-  static extractBaseUrl(spec: OpenAPI.Document): string {
-    const servers = spec.servers || [];
+  static extractBaseUrl(spec: OpenAPIV3.Document): string {
+    const servers = (spec as any).servers || [];
     if (servers.length > 0) {
       return servers[0].url || '';
     }
