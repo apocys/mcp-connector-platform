@@ -1,0 +1,86 @@
+{
+  "name": "MCP Connector Platform",
+  "description": "Transform OpenAPI documentation into hosted MCP servers with governance controls and AI safety review",
+  "logo": "https://raw.githubusercontent.com/openai/gpt-4/main/examples/gpt4.png",
+  "repo": "https://github.com/yourusername/mcp-connector-platform",
+  "services": [
+    {
+      "name": "mcp-postgres",
+      "type": "pserv",
+      "plan": "free",
+      "config": {
+        "version": "15",
+        "database": "mcp_connector",
+        "user": "mcp_user"
+      }
+    },
+    {
+      "name": "mcp-backend",
+      "type": "web",
+      "plan": "free",
+      "runtime": "node",
+      "buildCommand": "cd backend && npm install && npm run build",
+      "startCommand": "cd backend && npm start",
+      "envVars": [
+        {
+          "key": "DATABASE_URL",
+          "fromDatabase": {
+            "name": "mcp-postgres",
+            "property": "connectionString"
+          }
+        },
+        {
+          "key": "OPENAI_API_KEY",
+          "sync": false
+        },
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        }
+      ],
+      "healthCheckPath": "/health"
+    },
+    {
+      "name": "mcp-frontend",
+      "type": "web",
+      "plan": "free",
+      "runtime": "node",
+      "buildCommand": "cd frontend && npm install && npm run build",
+      "startCommand": "cd frontend && npm run serve",
+      "envVars": [
+        {
+          "key": "VITE_API_URL",
+          "fromService": {
+            "name": "mcp-backend",
+            "property": "url"
+          }
+        }
+      ]
+    },
+    {
+      "name": "mcp-runtime",
+      "type": "web",
+      "plan": "free",
+      "runtime": "node",
+      "buildCommand": "cd mcp-runtime && npm install && npm run build",
+      "startCommand": "cd mcp-runtime && npm start",
+      "envVars": [
+        {
+          "key": "CONTROL_PLANE_URL",
+          "fromService": {
+            "name": "mcp-backend",
+            "property": "url"
+          }
+        },
+        {
+          "key": "MCP_RUNTIME_URL",
+          "fromService": {
+            "name": "mcp-runtime",
+            "property": "url"
+          }
+        }
+      ],
+      "healthCheckPath": "/health"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: mcp-postgres
+    plan: free
+    ipAllowList: []
+    postgreSQL:
+      version: 15
+      name: mcp_connector
+      user: mcp_user
+
+  # Backend API
+  - type: web
+    name: mcp-backend
+    plan: free
+    runtime: node
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mcp-postgres
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # Frontend UI
+  - type: web
+    name: mcp-frontend
+    plan: free
+    runtime: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm run serve
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: mcp-backend
+          property: url
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+
+  # MCP Runtime
+  - type: web
+    name: mcp-runtime
+    plan: free
+    runtime: node
+    buildCommand: cd mcp-runtime && npm install && npm run build
+    startCommand: cd mcp-runtime && npm start
+    envVars:
+      - key: CONTROL_PLANE_URL
+        fromService:
+          name: mcp-backend
+          property: url
+      - key: MCP_RUNTIME_URL
+        fromService:
+          name: mcp-runtime
+          property: url
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+    healthCheckPath: /health
+    autoDeploy: true
