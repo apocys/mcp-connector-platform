@@ -1,0 +1,330 @@
+{
+  "name": "Taurus Prime API Demo",
+  "description": "Demo connector for Taurus Prime API with full governance features enabled",
+  "openApiSpec": "taurus-prime-api.yaml",
+  "baseUrl": "https://api.t-dx.com/api/rest/v1",
+  "authType": "apiKey",
+  "authConfig": {
+    "headerName": "Authorization",
+    "prefix": "Bearer"
+  },
+  "governance": {
+    "enabled": true,
+    "rules": {
+      "domainLock": {
+        "enabled": true,
+        "allowedDomains": [
+          "api.t-dx.com"
+        ],
+        "description": "Only allow calls to Taurus API domain"
+      },
+      "allowedVerbs": {
+        "enabled": true,
+        "verbs": ["GET", "POST"],
+        "description": "Only allow GET (read) and POST (create) operations, block DELETE"
+      },
+      "rateLimiting": {
+        "enabled": true,
+        "requestsPerMinute": 60,
+        "requestsPerHour": 1000,
+        "description": "Limit to 60 requests per minute, 1000 per hour"
+      },
+      "pathAllowlist": {
+        "enabled": true,
+        "paths": [
+          "/balances",
+          "/balances/*",
+          "/balance-histories",
+          "/balance-histories/*",
+          "/orders",
+          "/trades"
+        ],
+        "description": "Only allow access to specific safe endpoints"
+      },
+      "numericCeilings": {
+        "enabled": true,
+        "rules": [
+          {
+            "parameter": "limit",
+            "maxValue": 100,
+            "description": "Limit result pagination to max 100 items"
+          },
+          {
+            "parameter": "quantity",
+            "maxValue": 10,
+            "description": "Limit order quantity to prevent large trades"
+          }
+        ],
+        "description": "Enforce maximum values for numeric parameters"
+      },
+      "approvalWorkflow": {
+        "enabled": true,
+        "rules": [
+          {
+            "method": "POST",
+            "path": "/orders",
+            "condition": "always",
+            "description": "All order creation requires human approval"
+          },
+          {
+            "method": "POST",
+            "path": "/orders",
+            "condition": "quantity > 5",
+            "description": "Orders with quantity > 5 require approval"
+          }
+        ],
+        "description": "Require human approval for sensitive operations"
+      },
+      "sensitiveFieldRedaction": {
+        "enabled": true,
+        "fields": [
+          "apiKey",
+          "secret",
+          "password",
+          "token",
+          "authorization"
+        ],
+        "description": "Redact sensitive fields in logs"
+      },
+      "aiReviewer": {
+        "enabled": true,
+        "model": "gemini-2.5-flash",
+        "riskThreshold": 70,
+        "blockOnHighRisk": true,
+        "description": "Use Gemini AI to review requests for hallucinations and risks"
+      }
+    },
+    "defaultBehavior": {
+      "onRuleViolation": "block",
+      "onApprovalPending": "queue",
+      "onAiReviewFail": "block",
+      "logAllRequests": true
+    }
+  },
+  "tools": [
+    {
+      "name": "get_balances",
+      "description": "Get account balances for specified sub-accounts",
+      "endpoint": "/balances",
+      "method": "GET",
+      "parameters": {
+        "subAccountIds": {
+          "type": "array",
+          "required": true,
+          "description": "List of sub-account IDs to query"
+        },
+        "sort": {
+          "type": "string",
+          "required": false,
+          "default": "created_at-asc"
+        },
+        "limit": {
+          "type": "integer",
+          "required": false,
+          "default": 20,
+          "max": 100
+        }
+      },
+      "governance": {
+        "requiresApproval": false,
+        "riskLevel": "low"
+      }
+    },
+    {
+      "name": "get_balance_histories",
+      "description": "Get balance history for specified sub-accounts",
+      "endpoint": "/balance-histories",
+      "method": "GET",
+      "parameters": {
+        "subAccountIds": {
+          "type": "array",
+          "required": true
+        },
+        "limit": {
+          "type": "integer",
+          "default": 20,
+          "max": 100
+        }
+      },
+      "governance": {
+        "requiresApproval": false,
+        "riskLevel": "low"
+      }
+    },
+    {
+      "name": "get_balance",
+      "description": "Get a specific balance by ID",
+      "endpoint": "/balances/{id}",
+      "method": "GET",
+      "parameters": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "in": "path"
+        }
+      },
+      "governance": {
+        "requiresApproval": false,
+        "riskLevel": "low"
+      }
+    },
+    {
+      "name": "get_orders",
+      "description": "Get orders for specified sub-accounts",
+      "endpoint": "/orders",
+      "method": "GET",
+      "parameters": {
+        "subAccountIds": {
+          "type": "array",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "filled", "cancelled", "rejected"]
+        },
+        "limit": {
+          "type": "integer",
+          "default": 20,
+          "max": 100
+        }
+      },
+      "governance": {
+        "requiresApproval": false,
+        "riskLevel": "low"
+      }
+    },
+    {
+      "name": "create_order",
+      "description": "Create a new trading order (REQUIRES APPROVAL)",
+      "endpoint": "/orders",
+      "method": "POST",
+      "parameters": {
+        "subAccountId": {
+          "type": "string",
+          "required": true
+        },
+        "pair": {
+          "type": "string",
+          "required": true,
+          "description": "Trading pair (e.g., BTC-USD)"
+        },
+        "side": {
+          "type": "string",
+          "required": true,
+          "enum": ["buy", "sell"]
+        },
+        "type": {
+          "type": "string",
+          "required": true,
+          "enum": ["market", "limit"]
+        },
+        "quantity": {
+          "type": "string",
+          "required": true,
+          "max": 10
+        },
+        "price": {
+          "type": "string",
+          "required": false,
+          "description": "Required for limit orders"
+        }
+      },
+      "governance": {
+        "requiresApproval": true,
+        "riskLevel": "high",
+        "approvalReason": "Order creation involves financial transactions"
+      }
+    },
+    {
+      "name": "get_trades",
+      "description": "Get trade history for specified sub-accounts",
+      "endpoint": "/trades",
+      "method": "GET",
+      "parameters": {
+        "subAccountIds": {
+          "type": "array",
+          "required": true
+        },
+        "limit": {
+          "type": "integer",
+          "default": 20,
+          "max": 100
+        }
+      },
+      "governance": {
+        "requiresApproval": false,
+        "riskLevel": "low"
+      }
+    }
+  ],
+  "examples": {
+    "get_balances": {
+      "description": "Get balances for two sub-accounts",
+      "request": {
+        "subAccountIds": ["sub-account-1", "sub-account-2"],
+        "limit": 50
+      },
+      "expectedResponse": {
+        "balances": [
+          {
+            "id": "bal-123",
+            "subAccountId": "sub-account-1",
+            "asset": "BTC",
+            "available": "1.5",
+            "locked": "0.5",
+            "total": "2.0"
+          }
+        ]
+      }
+    },
+    "create_order": {
+      "description": "Create a limit buy order (requires approval)",
+      "request": {
+        "subAccountId": "sub-account-1",
+        "pair": "BTC-USD",
+        "side": "buy",
+        "type": "limit",
+        "quantity": "0.1",
+        "price": "50000"
+      },
+      "governance": {
+        "willRequireApproval": true,
+        "reason": "All order creation requires human approval"
+      }
+    }
+  },
+  "testing": {
+    "mockMode": true,
+    "mockResponses": {
+      "/balances": {
+        "balances": [
+          {
+            "id": "bal-demo-1",
+            "subAccountId": "demo-sub-1",
+            "asset": "BTC",
+            "available": "1.5",
+            "locked": "0.0",
+            "total": "1.5",
+            "createdAt": "2025-01-01T00:00:00Z"
+          },
+          {
+            "id": "bal-demo-2",
+            "subAccountId": "demo-sub-1",
+            "asset": "ETH",
+            "available": "10.0",
+            "locked": "2.0",
+            "total": "12.0",
+            "createdAt": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "nextCursor": null
+      }
+    }
+  },
+  "deployment": {
+    "mcpServerUrl": "https://mcp-runtime-xxx.onrender.com/connectors/taurus-demo",
+    "adminUiUrl": "https://mcp-frontend-xxx.onrender.com",
+    "status": "active",
+    "createdAt": "2025-12-16T00:00:00Z"
+  }
+}

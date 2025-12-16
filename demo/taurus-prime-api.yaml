@@ -1,0 +1,496 @@
+openapi: 3.0.3
+info:
+  title: Taurus Prime API
+  description: |
+    Taurus Prime API for digital asset trading and custody.
+    
+    This is a demo OpenAPI specification created from Readme.com documentation
+    for testing the MCP Connector Platform.
+  version: 1.0.0
+  contact:
+    name: Taurus SA
+    url: https://docs.taurushq.com
+servers:
+  - url: https://api.t-dx.com/api/rest/v1
+    description: Production API server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /balances:
+    get:
+      operationId: getBalances
+      summary: Get balances
+      description: This endpoint returns the balances of an account.
+      tags:
+        - Balances
+      parameters:
+        - name: subAccountIds
+          in: query
+          required: true
+          description: A list of sub-account unique identifiers to filter the balances
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: sort
+          in: query
+          required: false
+          description: Optionally sort the results
+          schema:
+            type: string
+            default: created_at-asc
+            enum:
+              - created_at-asc
+              - created_at-desc
+              - amount-asc
+              - amount-desc
+        - name: limit
+          in: query
+          required: false
+          description: Optionally limit the number of results (between 1 and 500)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 500
+        - name: query
+          in: query
+          required: false
+          description: Optionally filter the results
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+        - name: cursor
+          in: query
+          required: false
+          description: Optionally provide a cursor to paginate over pages of results
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  balances:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Balance'
+                  nextCursor:
+                    type: string
+                    description: Cursor for the next page of results
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /balance-histories:
+    get:
+      operationId: getBalanceHistories
+      summary: Get balance histories
+      description: This endpoint returns the balance histories of an account.
+      tags:
+        - Balances
+      parameters:
+        - name: subAccountIds
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: created_at-asc
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 500
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  histories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BalanceHistory'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /balance-histories/{id}:
+    get:
+      operationId: getBalanceHistory
+      summary: Get a balance history
+      description: This endpoint returns a specific balance history by ID.
+      tags:
+        - Balances
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the balance history
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /balances/{id}:
+    get:
+      operationId: getBalance
+      summary: Get a balance
+      description: This endpoint returns a specific balance by ID.
+      tags:
+        - Balances
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the balance
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders:
+    get:
+      operationId: getOrders
+      summary: Get orders
+      description: This endpoint returns the orders of an account.
+      tags:
+        - Orders
+      parameters:
+        - name: subAccountIds
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - filled
+              - cancelled
+              - rejected
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+
+    post:
+      operationId: createOrder
+      summary: Create order
+      description: This endpoint creates a new order.
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /trades:
+    get:
+      operationId: getTrades
+      summary: Get trades
+      description: This endpoint returns the trades of an account.
+      tags:
+        - Trades
+      parameters:
+        - name: subAccountIds
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trades:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Trade'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: API key for authentication
+
+  schemas:
+    Balance:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the balance
+        subAccountId:
+          type: string
+          description: Sub-account identifier
+        asset:
+          type: string
+          description: Asset symbol (e.g., BTC, ETH, USD)
+        available:
+          type: string
+          description: Available balance
+        locked:
+          type: string
+          description: Locked balance
+        total:
+          type: string
+          description: Total balance (available + locked)
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BalanceHistory:
+      type: object
+      properties:
+        id:
+          type: string
+        subAccountId:
+          type: string
+        asset:
+          type: string
+        amount:
+          type: string
+        type:
+          type: string
+          enum:
+            - deposit
+            - withdrawal
+            - trade
+            - fee
+        timestamp:
+          type: string
+          format: date-time
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        subAccountId:
+          type: string
+        pair:
+          type: string
+          description: Trading pair (e.g., BTC-USD)
+        side:
+          type: string
+          enum:
+            - buy
+            - sell
+        type:
+          type: string
+          enum:
+            - market
+            - limit
+        price:
+          type: string
+        quantity:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - filled
+            - cancelled
+            - rejected
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - subAccountId
+        - pair
+        - side
+        - type
+        - quantity
+      properties:
+        subAccountId:
+          type: string
+        pair:
+          type: string
+        side:
+          type: string
+          enum:
+            - buy
+            - sell
+        type:
+          type: string
+          enum:
+            - market
+            - limit
+        price:
+          type: string
+          description: Required for limit orders
+        quantity:
+          type: string
+
+    Trade:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        subAccountId:
+          type: string
+        pair:
+          type: string
+        side:
+          type: string
+        price:
+          type: string
+        quantity:
+          type: string
+        fee:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+        status:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad Request - indicates that the server cannot or will not process the request due to something that is perceived to be a client error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthenticated - indicates that the client request has not been completed because it lacks valid authentication credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - indicates that the server understands the request but refuses to authorize it
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Not Found - indicates that the server cannot find the requested resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal Server Error - indicates that the server encountered an unexpected condition
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServiceUnavailable:
+      description: Service Unavailable - indicates that the server is not ready to handle the request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
